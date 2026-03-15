@@ -8,7 +8,7 @@ package db
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createCluster = `-- name: CreateCluster :one
@@ -32,7 +32,7 @@ const deleteCluster = `-- name: DeleteCluster :exec
 DELETE FROM clusters WHERE id = $1
 `
 
-func (q *Queries) DeleteCluster(ctx context.Context, id pgtype.UUID) error {
+func (q *Queries) DeleteCluster(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteCluster, id)
 	return err
 }
@@ -41,7 +41,7 @@ const getCluster = `-- name: GetCluster :one
 SELECT id, name, status, created_at, updated_at FROM clusters WHERE id = $1
 `
 
-func (q *Queries) GetCluster(ctx context.Context, id pgtype.UUID) (Cluster, error) {
+func (q *Queries) GetCluster(ctx context.Context, id uuid.UUID) (Cluster, error) {
 	row := q.db.QueryRow(ctx, getCluster, id)
 	var i Cluster
 	err := row.Scan(
@@ -90,7 +90,7 @@ UPDATE clusters SET status = $1, updated_at = now() WHERE id = $2 RETURNING id, 
 
 type UpdateClusterStatusParams struct {
 	Status string
-	ID     pgtype.UUID
+	ID     uuid.UUID
 }
 
 func (q *Queries) UpdateClusterStatus(ctx context.Context, arg UpdateClusterStatusParams) (Cluster, error) {

@@ -5,33 +5,35 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type Cluster struct {
-	ID        pgtype.UUID
+	ID        uuid.UUID
 	Name      string
 	Status    string
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Node struct {
-	ID        pgtype.UUID
-	ClusterID pgtype.UUID
+	ID        uuid.UUID
+	ClusterID uuid.UUID
 	Name      string
 	Status    string
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Pod struct {
-	ID        pgtype.UUID
-	ClusterID pgtype.UUID
-	NodeID    pgtype.UUID
+	ID        uuid.UUID
+	ClusterID uuid.UUID
+	NodeID    uuid.NullUUID
 	Name      string
 	Image     string
 	Status    string
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
