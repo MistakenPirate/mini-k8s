@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: mini-k8s
+      POSTGRES_PASSWORD: mini-k8s
+      POSTGRES_DB: not-etcd
+    volumes:
+      - k8s-data:/var/lib/postgresql/data
+
+volumes:
+  k8s-data:
