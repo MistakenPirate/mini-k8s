@@ -30,12 +30,14 @@ type Node struct {
 }
 
 type Pod struct {
-	ID        uuid.UUID
-	ClusterID uuid.UUID
-	NodeID    uuid.NullUUID
-	Name      string
-	Image     string
-	Status    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID            uuid.UUID
+	ClusterID     uuid.UUID
+	NodeID        uuid.NullUUID
+	Name          string
+	Image         string
+	Status        string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	CpuRequest    int32
+	MemoryRequest int32
 }

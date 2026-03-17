@@ -13,6 +13,7 @@ import (
 	db "github.com/mistakenpirate/mini-k8s/db/sqlc"
 	"github.com/mistakenpirate/mini-k8s/internal/cluster"
 	"github.com/mistakenpirate/mini-k8s/internal/node"
+	"github.com/mistakenpirate/mini-k8s/internal/pod"
 )
 
 func main(){
@@ -44,6 +45,7 @@ func main(){
 	r.Route("/api/v1", func(r chi.Router) {
 		cluster.RegisterRoutes(r, queries)
 		node.RegisterRoutes(r, queries)
+		pod.RegisterRoutes(r, queries)
 	})
 
 	log.Printf("server listening on :%s", cfg.Port)

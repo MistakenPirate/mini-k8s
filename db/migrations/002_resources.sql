@@ -1,3 +1,7 @@
 ALTER TABLE nodes
     ADD COLUMN cpu_millis    INT NOT NULL DEFAULT 0,
     ADD COLUMN memory_mb     INT NOT NULL DEFAULT 0;
+
+ALTER TABLE pods
+    ADD COLUMN cpu_request   INT NOT NULL DEFAULT 0,
+    ADD COLUMN memory_request INT NOT NULL DEFAULT 0;
