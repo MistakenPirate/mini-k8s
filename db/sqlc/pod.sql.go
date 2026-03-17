@@ -106,6 +106,41 @@ func (q *Queries) GetPod(ctx context.Context, id uuid.UUID) (Pod, error) {
 	return i, err
 }
 
+const listPendingPods = `-- name: ListPendingPods :many
+SELECT id, cluster_id, node_id, name, image, status, created_at, updated_at, cpu_request, memory_request FROM pods WHERE status = 'pending' ORDER BY created_at ASC
+`
+
+func (q *Queries) ListPendingPods(ctx context.Context) ([]Pod, error) {
+	rows, err := q.db.Query(ctx, listPendingPods)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Pod
+	for rows.Next() {
+		var i Pod
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClusterID,
+			&i.NodeID,
+			&i.Name,
+			&i.Image,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CpuRequest,
+			&i.MemoryRequest,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPodsByCluster = `-- name: ListPodsByCluster :many
 SELECT id, cluster_id, node_id, name, image, status, created_at, updated_at, cpu_request, memory_request FROM pods WHERE cluster_id = $1 ORDER BY created_at DESC
 `

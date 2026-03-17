@@ -14,6 +14,9 @@ SELECT * FROM pods WHERE cluster_id = $1 AND status = $2 ORDER BY created_at DES
 -- name: ListPodsByNode :many
 SELECT * FROM pods WHERE node_id = $1 ORDER BY created_at DESC;
 
+-- name: ListPendingPods :many
+SELECT * FROM pods WHERE status = 'pending' ORDER BY created_at ASC;
+
 -- name: AssignPodToNode :one
 UPDATE pods SET node_id = $1, status = 'scheduled', updated_at = now() WHERE id = $2 RETURNING *;
 
