@@ -12,16 +12,24 @@ import (
 )
 
 const createNode = `-- name: CreateNode :one
-INSERT INTO nodes (cluster_id, name) VALUES ($1, $2) RETURNING id, cluster_id, name, status, created_at, updated_at
+INSERT INTO nodes (cluster_id, name, cpu_millis, memory_mb)
+VALUES ($1, $2, $3, $4) RETURNING id, cluster_id, name, status, created_at, updated_at, cpu_millis, memory_mb
 `
 
 type CreateNodeParams struct {
 	ClusterID uuid.UUID
 	Name      string
+	CpuMillis int32
+	MemoryMb  int32
 }
 
 func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (Node, error) {
-	row := q.db.QueryRow(ctx, createNode, arg.ClusterID, arg.Name)
+	row := q.db.QueryRow(ctx, createNode,
+		arg.ClusterID,
+		arg.Name,
+		arg.CpuMillis,
+		arg.MemoryMb,
+	)
 	var i Node
 	err := row.Scan(
 		&i.ID,
@@ -30,6 +38,8 @@ func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (Node, e
 		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CpuMillis,
+		&i.MemoryMb,
 	)
 	return i, err
 }
@@ -44,7 +54,7 @@ func (q *Queries) DeleteNode(ctx context.Context, id uuid.UUID) error {
 }
 
 const getNode = `-- name: GetNode :one
-SELECT id, cluster_id, name, status, created_at, updated_at FROM nodes WHERE id = $1
+SELECT id, cluster_id, name, status, created_at, updated_at, cpu_millis, memory_mb FROM nodes WHERE id = $1
 `
 
 func (q *Queries) GetNode(ctx context.Context, id uuid.UUID) (Node, error) {
@@ -57,12 +67,14 @@ func (q *Queries) GetNode(ctx context.Context, id uuid.UUID) (Node, error) {
 		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CpuMillis,
+		&i.MemoryMb,
 	)
 	return i, err
 }
 
 const listNodesByCluster = `-- name: ListNodesByCluster :many
-SELECT id, cluster_id, name, status, created_at, updated_at FROM nodes WHERE cluster_id = $1 ORDER BY created_at DESC
+SELECT id, cluster_id, name, status, created_at, updated_at, cpu_millis, memory_mb FROM nodes WHERE cluster_id = $1 ORDER BY created_at DESC
 `
 
 func (q *Queries) ListNodesByCluster(ctx context.Context, clusterID uuid.UUID) ([]Node, error) {
@@ -81,6 +93,8 @@ func (q *Queries) ListNodesByCluster(ctx context.Context, clusterID uuid.UUID) (
 			&i.Status,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CpuMillis,
+			&i.MemoryMb,
 		); err != nil {
 			return nil, err
 		}
@@ -93,7 +107,7 @@ func (q *Queries) ListNodesByCluster(ctx context.Context, clusterID uuid.UUID) (
 }
 
 const updateNodeStatus = `-- name: UpdateNodeStatus :one
-UPDATE nodes SET status = $1, updated_at = now() WHERE id = $2 RETURNING id, cluster_id, name, status, created_at, updated_at
+UPDATE nodes SET status = $1, updated_at = now() WHERE id = $2 RETURNING id, cluster_id, name, status, created_at, updated_at, cpu_millis, memory_mb
 `
 
 type UpdateNodeStatusParams struct {
@@ -111,6 +125,8 @@ func (q *Queries) UpdateNodeStatus(ctx context.Context, arg UpdateNodeStatusPara
 		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CpuMillis,
+		&i.MemoryMb,
 	)
 	return i, err
 }

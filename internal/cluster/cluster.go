@@ -13,11 +13,6 @@ type handler struct{
 	queries *db.Queries
 }
 
-func (h *handler) health(w http.ResponseWriter, r *http.Request){
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("ok"))
-}
-
 func (h *handler) list(w http.ResponseWriter, r *http.Request){
 	data, err := h.queries.ListClusters(r.Context())
 	if err != nil {
@@ -68,13 +63,58 @@ func (h *handler) get(w http.ResponseWriter, r *http.Request){
 	json.NewEncoder(w).Encode(data)
 }
 
-func RegisterRoutes(r chi.Router, queries *db.Queries) {
-    h := &handler{queries: queries}
+type updateBody struct {
+	Status string `json:"status"`
+}
 
-    r.Route("/clusters", func(r chi.Router) {
-		r.Get("/health", h.health)
-        r.Get("/", h.list)
-        r.Post("/", h.create)
-        r.Get("/{id}", h.get)
-    })
+func (h *handler) updateStatus(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	uuid, err := uuid.Parse(id)
+	if err != nil {
+		http.Error(w, "Invalid cluster ID", http.StatusBadRequest)
+		return
+	}
+	var body updateBody
+	err = json.NewDecoder(r.Body).Decode(&body)
+	if err != nil || body.Status == "" {
+		http.Error(w, "status is required", http.StatusBadRequest)
+		return
+	}
+	data, err := h.queries.UpdateClusterStatus(r.Context(), db.UpdateClusterStatusParams{
+		Status: body.Status,
+		ID:     uuid,
+	})
+	if err != nil {
+		http.Error(w, "Failed to update cluster", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
+}
+
+func (h *handler) delete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	uuid, err := uuid.Parse(id)
+	if err != nil {
+		http.Error(w, "Invalid cluster ID", http.StatusBadRequest)
+		return
+	}
+	err = h.queries.DeleteCluster(r.Context(), uuid)
+	if err != nil {
+		http.Error(w, "Failed to delete cluster", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func RegisterRoutes(r chi.Router, queries *db.Queries) {
+	h := &handler{queries: queries}
+
+	r.Route("/clusters", func(r chi.Router) {
+		r.Get("/", h.list)
+		r.Post("/", h.create)
+		r.Get("/{id}", h.get)
+		r.Patch("/{id}", h.updateStatus)
+		r.Delete("/{id}", h.delete)
+	})
 }

@@ -1,5 +1,6 @@
 -- name: CreateNode :one
-INSERT INTO nodes (cluster_id, name) VALUES ($1, $2) RETURNING *;
+INSERT INTO nodes (cluster_id, name, cpu_millis, memory_mb)
+VALUES ($1, $2, $3, $4) RETURNING *;
 
 -- name: GetNode :one
 SELECT * FROM nodes WHERE id = $1;

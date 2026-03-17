@@ -25,6 +25,8 @@ type Node struct {
 	Status    string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	CpuMillis int32
+	MemoryMb  int32
 }
 
 type Pod struct {

@@ -12,6 +12,7 @@ import (
 	"github.com/mistakenpirate/mini-k8s/config"
 	db "github.com/mistakenpirate/mini-k8s/db/sqlc"
 	"github.com/mistakenpirate/mini-k8s/internal/cluster"
+	"github.com/mistakenpirate/mini-k8s/internal/node"
 )
 
 func main(){
@@ -35,8 +36,14 @@ func main(){
 	r := chi.NewRouter()
     r.Use(middleware.Logger)
 
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
+
 	r.Route("/api/v1", func(r chi.Router) {
-    	cluster.RegisterRoutes(r, queries)
+		cluster.RegisterRoutes(r, queries)
+		node.RegisterRoutes(r, queries)
 	})
 
 	log.Printf("server listening on :%s", cfg.Port)
