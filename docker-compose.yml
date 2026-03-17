@@ -10,6 +10,25 @@ services:
       POSTGRES_DB: not-etcd
     volumes:
       - k8s-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mini-k8s -d not-etcd"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "7777:3000"
+    environment:
+      DATABASE_URL: postgresql://mini-k8s:mini-k8s@db:5432/not-etcd
+      PORT: "3000"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   k8s-data:
