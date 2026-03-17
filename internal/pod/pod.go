@@ -37,7 +37,6 @@ func (h *handler) createPod(w http.ResponseWriter, r *http.Request) {
 
 	data, err := h.queries.CreatePod(r.Context(), db.CreatePodParams{
 		ClusterID:     clusterUUID,
-		NodeID:        uuid.NullUUID{Valid: false},
 		Name:          body.Name,
 		Image:         body.Image,
 		CpuRequest:    body.CpuRequest,
@@ -45,45 +44,6 @@ func (h *handler) createPod(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		http.Error(w, "Failed to create pod", http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(data)
-}
-
-func (h *handler) schedulePod(w http.ResponseWriter, r *http.Request) {
-	clusterID := chi.URLParam(r, "clusterId")
-	clusterUUID, err := uuid.Parse(clusterID)
-	if err != nil {
-		http.Error(w, "Invalid cluster ID", http.StatusBadRequest)
-		return
-	}
-
-	nodeID := chi.URLParam(r, "nodeId")
-	nodeUUID, err := uuid.Parse(nodeID)
-	if err != nil {
-		http.Error(w, "Invalid node ID", http.StatusBadRequest)
-		return
-	}
-
-	var body createBody
-	err = json.NewDecoder(r.Body).Decode(&body)
-	if err != nil || body.Name == "" || body.Image == "" {
-		http.Error(w, "name and image are required", http.StatusBadRequest)
-		return
-	}
-
-	data, err := h.queries.CreatePod(r.Context(), db.CreatePodParams{
-		ClusterID:     clusterUUID,
-		NodeID:        uuid.NullUUID{UUID: nodeUUID, Valid: true},
-		Name:          body.Name,
-		Image:         body.Image,
-		CpuRequest:    body.CpuRequest,
-		MemoryRequest: body.MemoryRequest,
-	})
-	if err != nil {
-		http.Error(w, "Failed to schedule pod", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -230,5 +190,4 @@ func RegisterRoutes(r chi.Router, queries *db.Queries) {
 	r.Get("/clusters/{clusterId}/pods/{podId}", h.getPod)
 	r.Patch("/clusters/{clusterId}/pods/{podId}", h.updatePod)
 	r.Delete("/clusters/{clusterId}/pods/{podId}", h.deletePod)
-	r.Post("/clusters/{clusterId}/nodes/{nodeId}/pods", h.schedulePod)
 }

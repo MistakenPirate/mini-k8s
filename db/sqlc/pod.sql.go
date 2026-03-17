@@ -39,13 +39,12 @@ func (q *Queries) AssignPodToNode(ctx context.Context, arg AssignPodToNodeParams
 }
 
 const createPod = `-- name: CreatePod :one
-INSERT INTO pods (cluster_id, node_id, name, image, cpu_request, memory_request)
-VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, cluster_id, node_id, name, image, status, created_at, updated_at, cpu_request, memory_request
+INSERT INTO pods (cluster_id, name, image, cpu_request, memory_request)
+VALUES ($1, $2, $3, $4, $5) RETURNING id, cluster_id, node_id, name, image, status, created_at, updated_at, cpu_request, memory_request
 `
 
 type CreatePodParams struct {
 	ClusterID     uuid.UUID
-	NodeID        uuid.NullUUID
 	Name          string
 	Image         string
 	CpuRequest    int32
@@ -55,7 +54,6 @@ type CreatePodParams struct {
 func (q *Queries) CreatePod(ctx context.Context, arg CreatePodParams) (Pod, error) {
 	row := q.db.QueryRow(ctx, createPod,
 		arg.ClusterID,
-		arg.NodeID,
 		arg.Name,
 		arg.Image,
 		arg.CpuRequest,

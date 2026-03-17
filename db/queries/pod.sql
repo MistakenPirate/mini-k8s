@@ -1,6 +1,6 @@
 -- name: CreatePod :one
-INSERT INTO pods (cluster_id, node_id, name, image, cpu_request, memory_request)
-VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
+INSERT INTO pods (cluster_id, name, image, cpu_request, memory_request)
+VALUES ($1, $2, $3, $4, $5) RETURNING *;
 
 -- name: GetPod :one
 SELECT * FROM pods WHERE id = $1;
