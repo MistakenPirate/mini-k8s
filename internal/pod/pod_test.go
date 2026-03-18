@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"context"
 	"testing"
 	"time"
 
@@ -30,7 +31,7 @@ func setupRouter(t *testing.T) (chi.Router, pgxmock.PgxConnIface) {
 
 func TestCreatePod(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	now := time.Now()
 	clusterID := uuid.New()
@@ -68,7 +69,7 @@ func TestCreatePod(t *testing.T) {
 
 func TestCreatePodMissingName(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	body := `{"name": "", "image": "nginx:latest"}`
 	req := httptest.NewRequest(http.MethodPost, "/clusters/"+uuid.New().String()+"/pods", strings.NewReader(body))
@@ -83,7 +84,7 @@ func TestCreatePodMissingName(t *testing.T) {
 
 func TestCreatePodMissingImage(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	body := `{"name": "nginx", "image": ""}`
 	req := httptest.NewRequest(http.MethodPost, "/clusters/"+uuid.New().String()+"/pods", strings.NewReader(body))
@@ -98,7 +99,7 @@ func TestCreatePodMissingImage(t *testing.T) {
 
 func TestCreatePodInvalidClusterID(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	body := `{"name": "nginx", "image": "nginx:latest"}`
 	req := httptest.NewRequest(http.MethodPost, "/clusters/bad-id/pods", strings.NewReader(body))
@@ -113,7 +114,7 @@ func TestCreatePodInvalidClusterID(t *testing.T) {
 
 func TestListPodsByCluster(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	now := time.Now()
 	clusterID := uuid.New()
@@ -146,7 +147,7 @@ func TestListPodsByCluster(t *testing.T) {
 
 func TestListPodsByClusterWithStatusFilter(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	now := time.Now()
 	clusterID := uuid.New()
@@ -179,7 +180,7 @@ func TestListPodsByClusterWithStatusFilter(t *testing.T) {
 
 func TestListPodsByClusterEmpty(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	clusterID := uuid.New()
 	mock.ExpectQuery("SELECT .+ FROM pods WHERE cluster_id").
@@ -205,7 +206,7 @@ func TestListPodsByClusterEmpty(t *testing.T) {
 
 func TestListPodsByClusterInvalidID(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	req := httptest.NewRequest(http.MethodGet, "/clusters/bad-id/pods", nil)
 	rec := httptest.NewRecorder()
@@ -218,7 +219,7 @@ func TestListPodsByClusterInvalidID(t *testing.T) {
 
 func TestGetPod(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	now := time.Now()
 	clusterID := uuid.New()
@@ -248,7 +249,7 @@ func TestGetPod(t *testing.T) {
 
 func TestGetPodInvalidID(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	req := httptest.NewRequest(http.MethodGet, "/clusters/"+uuid.New().String()+"/pods/bad-id", nil)
 	rec := httptest.NewRecorder()
@@ -261,7 +262,7 @@ func TestGetPodInvalidID(t *testing.T) {
 
 func TestUpdatePodAssignToNode(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	now := time.Now()
 	clusterID := uuid.New()
@@ -294,7 +295,7 @@ func TestUpdatePodAssignToNode(t *testing.T) {
 
 func TestUpdatePodStatus(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	now := time.Now()
 	clusterID := uuid.New()
@@ -326,7 +327,7 @@ func TestUpdatePodStatus(t *testing.T) {
 
 func TestUpdatePodInvalidPodID(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	body := `{"status": "running"}`
 	req := httptest.NewRequest(http.MethodPatch, "/clusters/"+uuid.New().String()+"/pods/bad-id", strings.NewReader(body))
@@ -341,7 +342,7 @@ func TestUpdatePodInvalidPodID(t *testing.T) {
 
 func TestUpdatePodInvalidNodeID(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	podID := uuid.New()
 	body := `{"node_id": "not-a-uuid"}`
@@ -357,7 +358,7 @@ func TestUpdatePodInvalidNodeID(t *testing.T) {
 
 func TestUpdatePodMissingFields(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	podID := uuid.New()
 	body := `{"something": "else"}`
@@ -373,7 +374,7 @@ func TestUpdatePodMissingFields(t *testing.T) {
 
 func TestUpdatePodInvalidJSON(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	podID := uuid.New()
 	req := httptest.NewRequest(http.MethodPatch, "/clusters/"+uuid.New().String()+"/pods/"+podID.String(), strings.NewReader("not json"))
@@ -388,7 +389,7 @@ func TestUpdatePodInvalidJSON(t *testing.T) {
 
 func TestDeletePod(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	podID := uuid.New()
 	mock.ExpectExec("DELETE FROM pods WHERE").
@@ -409,7 +410,7 @@ func TestDeletePod(t *testing.T) {
 
 func TestDeletePodInvalidID(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	req := httptest.NewRequest(http.MethodDelete, "/clusters/"+uuid.New().String()+"/pods/bad-id", nil)
 	rec := httptest.NewRecorder()

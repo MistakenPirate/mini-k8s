@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"context"
 	"testing"
 	"time"
 
@@ -30,7 +31,7 @@ func setupRouter(t *testing.T) (chi.Router, pgxmock.PgxConnIface) {
 
 func TestListNodesByCluster(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	now := time.Now()
 	clusterID := uuid.New()
@@ -63,7 +64,7 @@ func TestListNodesByCluster(t *testing.T) {
 
 func TestListNodesByClusterEmpty(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	clusterID := uuid.New()
 	mock.ExpectQuery("SELECT .+ FROM nodes WHERE").
@@ -89,7 +90,7 @@ func TestListNodesByClusterEmpty(t *testing.T) {
 
 func TestListNodesByClusterInvalidID(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	req := httptest.NewRequest(http.MethodGet, "/clusters/bad-id/nodes", nil)
 	rec := httptest.NewRecorder()
@@ -102,7 +103,7 @@ func TestListNodesByClusterInvalidID(t *testing.T) {
 
 func TestCreateNode(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	now := time.Now()
 	clusterID := uuid.New()
@@ -137,7 +138,7 @@ func TestCreateNode(t *testing.T) {
 
 func TestCreateNodeMissingName(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	body := `{"name": "", "cpu_millis": 1000, "memory_mb": 1024}`
 	req := httptest.NewRequest(http.MethodPost, "/clusters/"+uuid.New().String()+"/nodes", strings.NewReader(body))
@@ -152,7 +153,7 @@ func TestCreateNodeMissingName(t *testing.T) {
 
 func TestCreateNodeInvalidClusterID(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	body := `{"name": "worker-1", "cpu_millis": 1000, "memory_mb": 1024}`
 	req := httptest.NewRequest(http.MethodPost, "/clusters/bad-id/nodes", strings.NewReader(body))
@@ -167,7 +168,7 @@ func TestCreateNodeInvalidClusterID(t *testing.T) {
 
 func TestGetNode(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	now := time.Now()
 	clusterID := uuid.New()
@@ -197,7 +198,7 @@ func TestGetNode(t *testing.T) {
 
 func TestGetNodeInvalidID(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	req := httptest.NewRequest(http.MethodGet, "/clusters/"+uuid.New().String()+"/nodes/bad-id", nil)
 	rec := httptest.NewRecorder()
@@ -210,7 +211,7 @@ func TestGetNodeInvalidID(t *testing.T) {
 
 func TestUpdateNodeStatus(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	now := time.Now()
 	clusterID := uuid.New()
@@ -242,7 +243,7 @@ func TestUpdateNodeStatus(t *testing.T) {
 
 func TestUpdateNodeStatusMissingStatus(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	nodeID := uuid.New()
 	body := `{"status": ""}`
@@ -258,7 +259,7 @@ func TestUpdateNodeStatusMissingStatus(t *testing.T) {
 
 func TestUpdateNodeStatusInvalidID(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	body := `{"status": "ready"}`
 	req := httptest.NewRequest(http.MethodPatch, "/clusters/"+uuid.New().String()+"/nodes/bad-id", strings.NewReader(body))
@@ -273,7 +274,7 @@ func TestUpdateNodeStatusInvalidID(t *testing.T) {
 
 func TestDeleteNode(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	nodeID := uuid.New()
 	mock.ExpectExec("DELETE FROM nodes WHERE").
@@ -294,7 +295,7 @@ func TestDeleteNode(t *testing.T) {
 
 func TestDeleteNodeInvalidID(t *testing.T) {
 	r, mock := setupRouter(t)
-	defer mock.Close(nil)
+	defer mock.Close(context.Background())
 
 	req := httptest.NewRequest(http.MethodDelete, "/clusters/"+uuid.New().String()+"/nodes/bad-id", nil)
 	rec := httptest.NewRecorder()
