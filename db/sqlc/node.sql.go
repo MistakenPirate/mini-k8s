@@ -73,6 +73,31 @@ func (q *Queries) GetNode(ctx context.Context, id uuid.UUID) (Node, error) {
 	return i, err
 }
 
+const getNodeByName = `-- name: GetNodeByName :one
+SELECT id, cluster_id, name, status, created_at, updated_at, cpu_millis, memory_mb FROM nodes WHERE cluster_id = $1 AND name = $2
+`
+
+type GetNodeByNameParams struct {
+	ClusterID uuid.UUID
+	Name      string
+}
+
+func (q *Queries) GetNodeByName(ctx context.Context, arg GetNodeByNameParams) (Node, error) {
+	row := q.db.QueryRow(ctx, getNodeByName, arg.ClusterID, arg.Name)
+	var i Node
+	err := row.Scan(
+		&i.ID,
+		&i.ClusterID,
+		&i.Name,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CpuMillis,
+		&i.MemoryMb,
+	)
+	return i, err
+}
+
 const listNodesByCluster = `-- name: ListNodesByCluster :many
 SELECT id, cluster_id, name, status, created_at, updated_at, cpu_millis, memory_mb FROM nodes WHERE cluster_id = $1 ORDER BY created_at DESC
 `

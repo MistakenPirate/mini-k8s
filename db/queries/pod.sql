@@ -14,6 +14,12 @@ SELECT * FROM pods WHERE cluster_id = $1 AND status = $2 ORDER BY created_at DES
 -- name: ListPodsByNode :many
 SELECT * FROM pods WHERE node_id = $1 ORDER BY created_at DESC;
 
+-- name: ListScheduledPodsByNode :many
+SELECT * FROM pods WHERE node_id = $1 AND status = 'scheduled' ORDER BY created_at ASC;
+
+-- name: ListRunningPodsByNode :many
+SELECT * FROM pods WHERE node_id = $1 AND status = 'running' ORDER BY created_at ASC;
+
 -- name: ListPendingPods :many
 SELECT * FROM pods WHERE status = 'pending' ORDER BY created_at ASC;
 

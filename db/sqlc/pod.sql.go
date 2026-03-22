@@ -251,6 +251,76 @@ func (q *Queries) ListPodsByStatus(ctx context.Context, arg ListPodsByStatusPara
 	return items, nil
 }
 
+const listRunningPodsByNode = `-- name: ListRunningPodsByNode :many
+SELECT id, cluster_id, node_id, name, image, status, created_at, updated_at, cpu_request, memory_request FROM pods WHERE node_id = $1 AND status = 'running' ORDER BY created_at ASC
+`
+
+func (q *Queries) ListRunningPodsByNode(ctx context.Context, nodeID uuid.NullUUID) ([]Pod, error) {
+	rows, err := q.db.Query(ctx, listRunningPodsByNode, nodeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Pod
+	for rows.Next() {
+		var i Pod
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClusterID,
+			&i.NodeID,
+			&i.Name,
+			&i.Image,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CpuRequest,
+			&i.MemoryRequest,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listScheduledPodsByNode = `-- name: ListScheduledPodsByNode :many
+SELECT id, cluster_id, node_id, name, image, status, created_at, updated_at, cpu_request, memory_request FROM pods WHERE node_id = $1 AND status = 'scheduled' ORDER BY created_at ASC
+`
+
+func (q *Queries) ListScheduledPodsByNode(ctx context.Context, nodeID uuid.NullUUID) ([]Pod, error) {
+	rows, err := q.db.Query(ctx, listScheduledPodsByNode, nodeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Pod
+	for rows.Next() {
+		var i Pod
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClusterID,
+			&i.NodeID,
+			&i.Name,
+			&i.Image,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CpuRequest,
+			&i.MemoryRequest,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updatePodStatus = `-- name: UpdatePodStatus :one
 UPDATE pods SET status = $1, updated_at = now() WHERE id = $2 RETURNING id, cluster_id, node_id, name, image, status, created_at, updated_at, cpu_request, memory_request
 `
